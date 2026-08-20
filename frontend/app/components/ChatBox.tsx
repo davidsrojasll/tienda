@@ -1,25 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Message = {
   text: string;
   from: "user" | "bot";
+  time: string;
 };
+
+const now = () =>
+  new Date().toLocaleTimeString("es-CO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function ChatBox() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hola, ¿en qué puedo ayudarte?", from: "bot" },
+    { text: "Hola, ¿en qué puedo ayudarte?", from: "bot", time: now() },
   ]);
   const [loading, setLoading] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || loading) return;
 
-    setMessages((prev) => [...prev, { text, from: "user" }]);
+    setMessages((prev) => [...prev, { text, from: "user", time: now() }]);
     setInput("");
     setLoading(true);
 
@@ -33,12 +46,16 @@ export default function ChatBox() {
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
-        { text: data.reply, from: "bot" },
+        { text: data.reply, from: "bot", time: now() },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { text: "Error al conectar con el servidor", from: "bot" },
+        {
+          text: "Error al conectar con el servidor",
+          from: "bot",
+          time: now(),
+        },
       ]);
     } finally {
       setLoading(false);
@@ -66,14 +83,16 @@ export default function ChatBox() {
           </div>
 
           {/* Mensajes */}
-          <div className="flex-1 space-y-2 overflow-y-auto p-4">
+          <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex flex-col ${
+                  msg.from === "user" ? "items-end" : "items-start"
+                }`}
               >
                 <span
-                  className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
                     msg.from === "user"
                       ? "bg-blue-600 text-white"
                       : "bg-zinc-100 text-zinc-800"
@@ -81,11 +100,13 @@ export default function ChatBox() {
                 >
                   {msg.text}
                 </span>
+                <span className="mt-1 text-[10px] text-zinc-400">{msg.time}</span>
               </div>
             ))}
             {loading && (
               <p className="text-xs text-zinc-400">Escribiendo...</p>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
