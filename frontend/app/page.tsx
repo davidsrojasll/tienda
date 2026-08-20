@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import ChatBox from "./components/ChatBox";
 
 type Product = {
   id: number;
@@ -24,6 +25,7 @@ export default function Home() {
   }, []);
 
   return (
+    <>
     <main className="min-h-screen bg-zinc-50 p-8">
       <h1 className="mb-6 text-3xl font-bold text-zinc-900">Tienda</h1>
       {error && <p className="text-red-600">{error}</p>}
@@ -42,5 +44,7 @@ export default function Home() {
         <p className="text-zinc-500">Cargando productos...</p>
       )}
     </main>
+    <ChatBox />
+    </>
   );
 }
